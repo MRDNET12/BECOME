@@ -1,0 +1,106 @@
+// BECOME App Database Schema
+// Productivity App with RPG Elements
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  identities         Identity[]
+  attributes         UserAttributeProgress[]
+  quests             Quest[]
+  reflections        Reflection[]
+}
+
+model Identity {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quests  Quest[]
+  levels  IdentityLevel[]
+}
+
+model Attribute {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#00ffcc") // Cyan, Orange, Violet, etc.
+  createdAt DateTime @default(now())
+
+  identityLevels  IdentityLevel[]
+  userProgress    UserAttributeProgress[]
+}
+
+model IdentityLevel {
+  id          String   @id @default(cuid())
+  identityId  String
+  attributeId String
+  baseXP      Int      @default(10)
+  createdAt   DateTime @default(now())
+
+  identity  Identity  @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+}
+
+model UserAttributeProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  attributeId String
+  currentXP   Int      @default(0)
+  currentLevel Int     @default(1)
+  streak      Int      @default(0)
+  totalXP     Int      @default(0)
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, attributeId])
+}
+
+model Quest {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  identityId  String
+  userId      String
+  xpReward    Int      @default(50)
+  status      String   @default("pending") // pending, completed, failed, forged
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identity   Identity   @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  reflection Reflection?
+}
+
+model Reflection {
+  id          String   @id @default(cuid())
+  questId     String   @unique
+  userId      String
+  resistance  String   // "Fatigue", "Peur", "Distraction", etc.
+  lesson      String   // Lesson learned
+  xpReward    Int      @default(10) // Wisdom or Resilience XP
+  createdAt   DateTime @default(now())
+
+  quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
