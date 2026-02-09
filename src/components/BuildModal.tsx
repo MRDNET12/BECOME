@@ -54,6 +54,7 @@ export function BuildModal({ isOpen, onClose, identities, onAddProof, onAddLog }
 
   return (
     <AnimatePresence>
+      {/* Menu initial pour choisir Preuve ou Log */}
       {isOpen && !mode && (
         <motion.div
           key="menu"
@@ -98,165 +99,161 @@ export function BuildModal({ isOpen, onClose, identities, onAddProof, onAddLog }
       )}
 
       {/* Mode Ajouter Preuve */}
-      <AnimatePresence>
-        {isOpen && mode === "proof" && (
+      {isOpen && mode === "proof" && (
+        <motion.div
+          key="proof"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
           <motion.div
-            key="proof"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border-2 border-neon-orange w-full max-w-lg rounded-2xl p-6"
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-card border-2 border-neon-orange w-full max-w-lg rounded-2xl p-6"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-neon-orange/20 rounded-xl flex items-center justify-center">
-                    <Target className="w-6 h-6 text-neon-orange" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">Ajouter une Preuve</h3>
-                    <p className="text-sm text-muted-foreground">Crée une nouvelle quête</p>
-                  </div>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-neon-orange/20 rounded-xl flex items-center justify-center">
+                  <Target className="w-6 h-6 text-neon-orange" />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleClose}
-                  className="hover:bg-destructive/10"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <div>
+                  <h3 className="text-xl font-bold">Ajouter une Preuve</h3>
+                  <p className="text-sm text-muted-foreground">Crée une nouvelle quête</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="hover:bg-destructive/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="proof-title">Quelle action vas-tu accomplir ?</Label>
+                <Input
+                  id="proof-title"
+                  placeholder="Ex: Courir 5km, Écrire 500 mots..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-2 bg-background/50 text-lg"
+                />
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="proof-title">Quelle action vas-tu accomplir ?</Label>
-                  <Input
-                    id="proof-title"
-                    placeholder="Ex: Courir 5km, Écrire 500 mots..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="mt-2 bg-background/50 text-lg"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="proof-identity">Pour quelle identité ?</Label>
-                  <Select value={identityId} onValueChange={setIdentityId}>
-                    <SelectTrigger className="mt-2 bg-background/50">
-                      <SelectValue placeholder="Choisir une identité" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {identities.map((identity) => (
-                        <SelectItem key={identity.id} value={identity.id}>
-                          {identity.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="proof-description">Description (optionnel)</Label>
-                  <Textarea
-                    id="proof-description"
-                    placeholder="Détails supplémentaires..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="mt-2 bg-background/50"
-                    rows={3}
-                  />
-                </div>
-
-                <Button
-                  onClick={handleAddProof}
-                  disabled={!title || !identityId}
-                  className="w-full h-14 text-lg bg-neon-orange hover:bg-neon-orange/90"
-                  size="lg"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Créer la Preuve
-                </Button>
+              <div>
+                <Label htmlFor="proof-identity">Pour quelle identité ?</Label>
+                <Select value={identityId} onValueChange={setIdentityId}>
+                  <SelectTrigger className="mt-2 bg-background/50">
+                    <SelectValue placeholder="Choisir une identité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {identities.map((identity) => (
+                      <SelectItem key={identity.id} value={identity.id}>
+                        {identity.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </motion.div>
+
+              <div>
+                <Label htmlFor="proof-description">Description (optionnel)</Label>
+                <Textarea
+                  id="proof-description"
+                  placeholder="Détails supplémentaires..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="mt-2 bg-background/50"
+                  rows={3}
+                />
+              </div>
+
+              <Button
+                onClick={handleAddProof}
+                disabled={!title || !identityId}
+                className="w-full h-14 text-lg bg-neon-orange hover:bg-neon-orange/90"
+                size="lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Créer la Preuve
+              </Button>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
 
       {/* Mode Log Rapide */}
-      <AnimatePresence>
-        {isOpen && mode === "log" && (
+      {isOpen && mode === "log" && (
+        <motion.div
+          key="log"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
           <motion.div
-            key="log"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border-2 border-neon-violet w-full max-w-lg rounded-2xl p-6"
           >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-card border-2 border-neon-violet w-full max-w-lg rounded-2xl p-6"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-neon-violet/20 rounded-xl flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-neon-violet" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">Log Rapide</h3>
-                    <p className="text-sm text-muted-foreground">Micro-journaling</p>
-                  </div>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-neon-violet/20 rounded-xl flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-neon-violet" />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleClose}
-                  className="hover:bg-destructive/10"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="log-content">Victoire inattendue ou pensée fugitive</Label>
-                  <Textarea
-                    id="log-content"
-                    placeholder="Note une victoire, une idée ou un moment de gratitude..."
-                    value={logContent}
-                    onChange={(e) => setLogContent(e.target.value)}
-                    className="mt-2 bg-background/50 min-h-32 text-lg"
-                    rows={5}
-                  />
+                  <h3 className="text-xl font-bold">Log Rapide</h3>
+                  <p className="text-sm text-muted-foreground">Micro-journaling</p>
                 </div>
-
-                <Button
-                  onClick={handleAddLog}
-                  disabled={!logContent.trim()}
-                  className="w-full h-14 text-lg bg-neon-violet hover:bg-neon-violet/90"
-                  size="lg"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Enregistrer le Log
-                </Button>
               </div>
-            </motion.div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClose}
+                className="hover:bg-destructive/10"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="log-content">Victoire inattendue ou pensée fugitive</Label>
+                <Textarea
+                  id="log-content"
+                  placeholder="Note une victoire, une idée ou un moment de gratitude..."
+                  value={logContent}
+                  onChange={(e) => setLogContent(e.target.value)}
+                  className="mt-2 bg-background/50 min-h-32 text-lg"
+                  rows={5}
+                />
+              </div>
+
+              <Button
+                onClick={handleAddLog}
+                disabled={!logContent.trim()}
+                className="w-full h-14 text-lg bg-neon-violet hover:bg-neon-violet/90"
+                size="lg"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Enregistrer le Log
+              </Button>
+            </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 }

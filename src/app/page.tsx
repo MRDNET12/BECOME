@@ -207,19 +207,39 @@ export default function BecomePage() {
   const totalQuests = quests.length;
   const dayProgress = totalQuests > 0 ? (completedToday / totalQuests) * 100 : 0;
 
-  // Calcul des attributs pour le radar chart
+  // Calcul des attributs pour le radar chart (basé sur les vrais attributs des identités)
   const getAttributeData = () => {
-    return Object.entries(ATTRIBUTE_COLORS).map(([name, color]) => {
-      const value = identities.reduce((sum, id) => {
-        if (id.attributes.includes(name)) {
-          return sum + id.level * 10 + Math.floor(id.xp / 100);
-        }
-        return sum;
-      }, 0);
+    // Collecter tous les attributs uniques de toutes les identités
+    const allAttributes = new Map<string, { totalValue: number; count: number }>();
 
+    identities.forEach((identity) => {
+      if (identity.attributes && identity.attributes.length > 0) {
+        identity.attributes.forEach((attrName) => {
+          const current = allAttributes.get(attrName) || { totalValue: 0, count: 0 };
+          // Calcul de la valeur basé sur le niveau et l'XP de l'identité
+          const value = identity.level * 10 + Math.floor(identity.xp / 100);
+          allAttributes.set(attrName, {
+            totalValue: current.totalValue + value,
+            count: current.count + 1,
+          });
+        });
+      }
+    });
+
+    // Si aucun attribut, retourner un tableau vide
+    if (allAttributes.size === 0) {
+      return [];
+    }
+
+    // Convertir en tableau avec couleurs
+    const colors = ["#22c55e", "#06b6d4", "#8b5cf6", "#f97316", "#eab308", "#ef4444", "#ec4899", "#14b8a6"];
+    let colorIndex = 0;
+
+    return Array.from(allAttributes.entries()).map(([name, data]) => {
+      const color = ATTRIBUTE_COLORS[name as keyof typeof ATTRIBUTE_COLORS] || colors[colorIndex++ % colors.length];
       return {
         name,
-        value,
+        value: data.totalValue,
         max: 200,
         color,
       };
@@ -762,7 +782,15 @@ export default function BecomePage() {
                     Répartition de tes Attributs
                   </h3>
                   <div className="relative">
-                    <RadarChart attributes={getAttributeData()} size={280} />
+                    {getAttributeData().length > 0 ? (
+                      <RadarChart attributes={getAttributeData()} size={280} />
+                    ) : (
+                      <div className="w-[280px] h-[280px] flex flex-col items-center justify-center text-center text-muted-foreground">
+                        <Shield className="w-16 h-16 mb-4 opacity-30" />
+                        <p className="text-sm">Aucun attribut défini</p>
+                        <p className="text-xs mt-1">Crée une identité avec des attributs pour voir ta progression</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -811,7 +839,7 @@ export default function BecomePage() {
                   <Button
                     size="sm"
                     onClick={() => setShowIdentityModal(true)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    className="bg-gradient-to-r from-gray-900 to-neon-gold hover:from-gray-800 hover:to-neon-gold/90 text-white"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter
