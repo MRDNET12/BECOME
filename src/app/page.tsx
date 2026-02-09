@@ -15,6 +15,7 @@ import { BuildModal } from "@/components/BuildModal";
 import { RadarChart } from "@/components/RadarChart";
 import { Onboarding } from "@/components/Onboarding";
 import { IdentityCreationModal } from "@/components/IdentityCreationModal";
+import { SwipeableQuestCard } from "@/components/SwipeableQuestCard";
 import { Sparkles, Shield, Target, BookOpen, Flame, Zap, TrendingUp, Check, X, Calendar, ChevronRight, Plus } from "lucide-react";
 
 // Types
@@ -178,6 +179,7 @@ export default function BecomePage() {
   const [logs, setLogs] = useState<Log[]>(mockLogs);
   const [lessons, setLessons] = useState<Lesson[]>(mockLessons);
   const [showForgeDialog, setShowForgeDialog] = useState<Quest | null>(null);
+  const [selectedResistance, setSelectedResistance] = useState<string>("");
   const [timeTravelValue, setTimeTravelValue] = useState(50); // 50 = aujourd'hui
   const [identities, setIdentities] = useState<Identity[]>([]);
 
@@ -232,7 +234,7 @@ export default function BecomePage() {
     const savedLogs = localStorage.getItem('become-logs');
     const savedLessons = localStorage.getItem('become-lessons');
     const onboardingCompleted = localStorage.getItem('become-onboarding-completed');
-    
+
     // Parse dates for quests
     const parseQuests = (data: string) => {
       const parsed = JSON.parse(data);
@@ -260,7 +262,7 @@ export default function BecomePage() {
         date: new Date(l.date),
       }));
     };
-    
+
     if (savedIdentities) {
       try {
         setIdentities(JSON.parse(savedIdentities));
@@ -268,7 +270,7 @@ export default function BecomePage() {
         console.error('Error parsing identities from localStorage:', e);
       }
     }
-    
+
     if (savedQuests) {
       try {
         setQuests(parseQuests(savedQuests));
@@ -276,7 +278,7 @@ export default function BecomePage() {
         console.error('Error parsing quests from localStorage:', e);
       }
     }
-    
+
     if (savedLogs) {
       try {
         setLogs(parseLogs(savedLogs));
@@ -287,7 +289,7 @@ export default function BecomePage() {
       // If no logs in storage, clear mock data
       setLogs([]);
     }
-    
+
     if (savedLessons) {
       try {
         setLessons(parseLessons(savedLessons));
@@ -298,24 +300,24 @@ export default function BecomePage() {
       // If no lessons in storage, clear mock data
       setLessons([]);
     }
-    
+
     // Don't show onboarding if already completed
     if (onboardingCompleted === 'true' && savedIdentities && savedQuests) {
       setIsLoading(false);
       return;
     }
-    
+
     // Otherwise, fetch from API
     const fetchData = async () => {
       try {
         // Fetch identities
         const idRes = await fetch('/api/onboarding/identities');
         const idData = await idRes.json();
-        
+
         // Fetch quests
         const qRes = await fetch('/api/onboarding/quests');
         const qData = await qRes.json();
-        
+
         if (idData.identities && idData.identities.length > 0) {
           // Map database identities to app format
           const mappedIdentities = idData.identities.map((id: any) => ({
@@ -331,7 +333,7 @@ export default function BecomePage() {
           // Save to localStorage
           localStorage.setItem('become-identities', JSON.stringify(mappedIdentities));
         }
-        
+
         if (qData.quests && qData.quests.length > 0) {
           const mappedQuests = qData.quests.map((q: any) => ({
             id: q.id,
@@ -346,7 +348,7 @@ export default function BecomePage() {
           // Save to localStorage
           localStorage.setItem('become-quests', JSON.stringify(mappedQuests));
         }
-        
+
         // Show onboarding if no identities exist
         if (!idData.identities || idData.identities.length === 0) {
           setShowOnboarding(true);
@@ -364,7 +366,7 @@ export default function BecomePage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -384,27 +386,31 @@ export default function BecomePage() {
         color: ['orange', 'violet', 'cyan'][index % 3],
         attributes: id.attributes,
       }));
-      
-      const newQuests = data.tasks.map((task: any) => ({
-        id: task.id,
-        title: task.description,
-        description: '',
-        linkedIdentity: '',
-        xpReward: task.xp,
-        status: 'pending' as const,
-        createdAt: new Date(),
-      }));
-      
+
+      const newQuests = data.tasks.map((task: any) => {
+        // Trouver l'identité correspondante par nom
+        const matchedIdentity = newIdentities.find((id: any) => id.name === task.identityName);
+        return {
+          id: task.id,
+          title: task.description,
+          description: '',
+          linkedIdentity: matchedIdentity?.id || newIdentities[0]?.id || '',
+          xpReward: task.xp,
+          status: 'pending' as const,
+          createdAt: new Date(),
+        };
+      });
+
       // Save to localStorage first
       localStorage.setItem('become-onboarding-completed', 'true');
       localStorage.setItem('become-identities', JSON.stringify(newIdentities));
       localStorage.setItem('become-quests', JSON.stringify(newQuests));
-      
+
       // Update state
       setIdentities(newIdentities);
       setQuests(newQuests);
       setShowOnboarding(false);
-      
+
       // Try to save to database (optional - don't block if it fails)
       try {
         const idRes = await fetch('/api/onboarding/identities', {
@@ -412,13 +418,13 @@ export default function BecomePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ identities: data.identities }),
         });
-        
+
         const qRes = await fetch('/api/onboarding/quests', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tasks: data.tasks }),
         });
-        
+
         if (idRes.ok && qRes.ok) {
           toast({
             title: 'Initialisation terminée !',
@@ -434,7 +440,7 @@ export default function BecomePage() {
       }
     } catch (error) {
       console.error('Error in onboarding complete:', error);
-      
+
       // Fallback: save locally even if something goes wrong
       const newIdentities = data.identities.map((id: any, index: number) => ({
         id: id.id,
@@ -445,25 +451,29 @@ export default function BecomePage() {
         color: ['orange', 'violet', 'cyan'][index % 3],
         attributes: id.attributes,
       }));
-      
-      const newQuests = data.tasks.map((task: any) => ({
-        id: task.id,
-        title: task.description,
-        description: '',
-        linkedIdentity: '',
-        xpReward: task.xp,
-        status: 'pending' as const,
-        createdAt: new Date(),
-      }));
-      
+
+      const newQuests = data.tasks.map((task: any) => {
+        // Trouver l'identité correspondante par nom
+        const matchedIdentity = newIdentities.find((id: any) => id.name === task.identityName);
+        return {
+          id: task.id,
+          title: task.description,
+          description: '',
+          linkedIdentity: matchedIdentity?.id || newIdentities[0]?.id || '',
+          xpReward: task.xp,
+          status: 'pending' as const,
+          createdAt: new Date(),
+        };
+      });
+
       localStorage.setItem('become-onboarding-completed', 'true');
       localStorage.setItem('become-identities', JSON.stringify(newIdentities));
       localStorage.setItem('become-quests', JSON.stringify(newQuests));
-      
+
       setIdentities(newIdentities);
       setQuests(newQuests);
       setShowOnboarding(false);
-      
+
       toast({
         title: 'Mode hors-ligne',
         description: 'Tes identités sont créées localement.',
@@ -590,18 +600,18 @@ export default function BecomePage() {
       color: ['orange', 'violet', 'cyan', 'pink'][Math.floor(Math.random() * 4)],
       attributes: newIdentity.attributes || [],
     };
-    
+
     const updatedIdentities = [...identities, identityToAdd];
     setIdentities(updatedIdentities);
-    
+
     // Save to localStorage
     localStorage.setItem('become-identities', JSON.stringify(updatedIdentities));
-    
+
     toast({
       title: 'Identité créée !',
       description: `${newIdentity.name} a été ajoutée à ta collection.`,
     });
-    
+
     // Also try to save to API (optional)
     try {
       await fetch('/api/onboarding/identities', {
@@ -697,74 +707,13 @@ export default function BecomePage() {
                         if (!identity) return null;
 
                         return (
-                          <motion.div
+                          <SwipeableQuestCard
                             key={quest.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-card rounded-2xl p-5 border-2 border-border/20 hover:border-neon-orange/50 transition-all"
-                          >
-                            {/* Tag identité */}
-                            <div className="flex items-center gap-2 mb-3">
-                              <Badge
-                                className={`${
-                                  identity.color === "orange" ? NEON_COLORS.orange :
-                                  identity.color === "violet" ? NEON_COLORS.violet :
-                                  NEON_COLORS.cyan
-                                }`}
-                              >
-                                Identité : {identity.name}
-                              </Badge>
-                            </div>
-
-                            {/* Titre et description */}
-                            <div className="mb-4">
-                              <h3 className="text-xl font-semibold mb-1">{quest.title}</h3>
-                              {quest.description && (
-                                <p className="text-sm text-muted-foreground">{quest.description}</p>
-                              )}
-                            </div>
-
-                            {/* Gain potentiel */}
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-neon-gold">
-                                <Zap className="w-5 h-5" />
-                                <span className="font-semibold">+{quest.xpReward} XP</span>
-                                <span className="text-muted-foreground text-sm">
-                                  {identity.attributes[0]}
-                                </span>
-                              </div>
-
-                              {/* Boutons d'action */}
-                              <div className="flex gap-2">
-                                <Button
-                                  size="icon"
-                                  onClick={() => handleFailQuest(quest.id)}
-                                  className="w-12 h-12 rounded-xl border-2 border-neon-orange bg-neon-orange/20 hover:bg-neon-orange/40 transition-colors"
-                                >
-                                  <X className="w-6 h-6 text-neon-orange" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  onClick={() => handleCompleteQuest(quest.id)}
-                                  className="w-12 h-12 rounded-xl border-2 border-neon-gold bg-neon-gold/20 hover:bg-neon-gold/40 transition-colors"
-                                >
-                                  <Check className="w-6 h-6 text-neon-gold" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            {/* Instruction swipe */}
-                            <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-1 bg-neon-gold rounded" />
-                                <span>Swipe Droit</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span>Swipe Gauche</span>
-                                <div className="w-8 h-1 bg-neon-orange rounded" />
-                              </div>
-                            </div>
-                          </motion.div>
+                            quest={quest}
+                            identity={identity}
+                            onComplete={handleCompleteQuest}
+                            onFail={handleFailQuest}
+                          />
                         );
                       })}
 
@@ -845,8 +794,8 @@ export default function BecomePage() {
                     />
                     <p className="text-center text-sm text-neon-violet">
                       {timeTravelValue < 33 ? "Vue du mois dernier" :
-                       timeTravelValue < 66 ? "Vue intermédiaire" :
-                       "Vue actuelle"}
+                        timeTravelValue < 66 ? "Vue intermédiaire" :
+                          "Vue actuelle"}
                     </p>
                   </div>
                 </div>
@@ -923,26 +872,26 @@ export default function BecomePage() {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2 pt-2">
-                        {identity.attributes.map((attr) => (
-                          <Badge
-                            key={attr}
-                            variant="outline"
-                            className="text-xs border-neon-violet text-neon-violet"
-                          >
-                            {attr}
-                          </Badge>
-                        ))}
+                          {identity.attributes.map((attr) => (
+                            <Badge
+                              key={attr}
+                              variant="outline"
+                              className="text-xs border-neon-violet text-neon-violet"
+                            >
+                              {attr}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <Button
-                      variant="ghost"
-                      className="w-full mt-4 hover:bg-neon-violet/10"
-                    >
-                      Voir l'historique
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </motion.div>
+                      <Button
+                        variant="ghost"
+                        className="w-full mt-4 hover:bg-neon-violet/10"
+                      >
+                        Voir l'historique
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </motion.div>
                   )))}
               </div>
             </motion.div>
@@ -1045,8 +994,8 @@ export default function BecomePage() {
                 <div className="space-y-3">
                   {logs.map((log) => {
                     const Icon = log.type === "victory" ? Sparkles :
-                                log.type === "thought" ? BookOpen :
-                                Flame;
+                      log.type === "thought" ? BookOpen :
+                        Flame;
 
                     return (
                       <motion.div
@@ -1274,11 +1223,11 @@ export default function BecomePage() {
                       <Button
                         key={option}
                         variant="outline"
-                        className="border-border/20 hover:border-neon-orange hover:bg-neon-orange/10"
-                        onClick={() => {
-                          // Pour l'instant, on sélectionne et on continue
-                          // Dans une vraie implémentation, on aurait un état pour stocker la résistance
-                        }}
+                        className={`border-border/20 hover:border-neon-orange hover:bg-neon-orange/10 transition-all ${selectedResistance === option
+                          ? "border-neon-orange bg-neon-orange/20 text-neon-orange"
+                          : ""
+                          }`}
+                        onClick={() => setSelectedResistance(option)}
                       >
                         {option}
                       </Button>
@@ -1299,16 +1248,17 @@ export default function BecomePage() {
 
                 <Button
                   onClick={() => {
-                    const resistanceEl = document.querySelector('button[class*="neon-orange/10"]') as HTMLButtonElement;
                     const lessonEl = document.getElementById('forge-lesson') as HTMLTextAreaElement;
-                    if (lessonEl?.value) {
-                      handleForgeSubmit(
-                        resistanceEl?.textContent || "Autre",
-                        lessonEl.value
-                      );
+                    if (selectedResistance && lessonEl?.value) {
+                      handleForgeSubmit(selectedResistance, lessonEl.value);
+                      setSelectedResistance(""); // Reset après soumission
                     }
                   }}
-                  className="w-full h-14 text-lg bg-neon-orange hover:bg-neon-orange/90"
+                  disabled={!selectedResistance}
+                  className={`w-full h-14 text-lg transition-all ${selectedResistance
+                    ? "bg-neon-orange hover:bg-neon-orange/90"
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
+                    }`}
                 >
                   <Flame className="w-5 h-5 mr-2" />
                   Transfigurer en XP (+20 Sagesse)

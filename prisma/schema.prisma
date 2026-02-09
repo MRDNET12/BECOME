@@ -14,6 +14,9 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  level     Int      @default(1)
+  totalXP   Int      @default(0)
+  streak    Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -24,27 +27,32 @@ model User {
 }
 
 model Identity {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  userId      String
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  category     String?
+  userId       String
+  currentLevel Int      @default(1)
+  totalXP      Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  quests  Quest[]
-  levels  IdentityLevel[]
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quests            Quest[]
+  levels            IdentityLevel[]
+  attributeProgress UserAttributeProgress[]
 }
 
 model Attribute {
   id        String   @id @default(cuid())
   name      String
+  category  String?
   color     String   @default("#00ffcc") // Cyan, Orange, Violet, etc.
   createdAt DateTime @default(now())
 
-  identityLevels  IdentityLevel[]
-  userProgress    UserAttributeProgress[]
+  identityLevels IdentityLevel[]
+  userProgress   UserAttributeProgress[]
 }
 
 model IdentityLevel {
@@ -59,47 +67,54 @@ model IdentityLevel {
 }
 
 model UserAttributeProgress {
-  id          String   @id @default(cuid())
-  userId      String
-  attributeId String
-  currentXP   Int      @default(0)
-  currentLevel Int     @default(1)
-  streak      Int      @default(0)
-  totalXP     Int      @default(0)
-  lastUpdated DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  userId       String
+  attributeId  String
+  identityId   String?
+  value        Int      @default(10)
+  currentXP    Int      @default(0)
+  currentLevel Int      @default(1)
+  streak       Int      @default(0)
+  totalXP      Int      @default(0)
+  lastUpdated  DateTime @default(now())
+  createdAt    DateTime @default(now())
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  identity  Identity? @relation(fields: [identityId], references: [id], onDelete: SetNull)
 
   @@unique([userId, attributeId])
 }
 
 model Quest {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  identityId  String
-  userId      String
-  xpReward    Int      @default(50)
-  status      String   @default("pending") // pending, completed, failed, forged
-  completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  identityId    String?
+  userId        String
+  xpReward      Int       @default(50)
+  status        String    @default("pending") // pending, completed, failed, forged
+  date          DateTime  @default(now())
+  scheduledTime String?
+  difficulty    String    @default("medium")
+  completed     Boolean   @default(false)
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  identity   Identity   @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  identity   Identity?   @relation(fields: [identityId], references: [id], onDelete: SetNull)
   reflection Reflection?
 }
 
 model Reflection {
-  id          String   @id @default(cuid())
-  questId     String   @unique
-  userId      String
-  resistance  String   // "Fatigue", "Peur", "Distraction", etc.
-  lesson      String   // Lesson learned
-  xpReward    Int      @default(10) // Wisdom or Resilience XP
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  questId    String   @unique
+  userId     String
+  resistance String   // "Fatigue", "Peur", "Distraction", etc.
+  lesson     String   // Lesson learned
+  xpReward   Int      @default(10) // Wisdom or Resilience XP
+  createdAt  DateTime @default(now())
 
   quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
