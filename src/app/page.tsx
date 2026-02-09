@@ -276,39 +276,70 @@ export default function BecomePage() {
         body: JSON.stringify({ tasks: data.tasks }),
       });
       
+      // Transform data to app format (même si l'API échoue, on affiche les données localement)
+      setIdentities(data.identities.map((id: any, index: number) => ({
+        id: id.id,
+        name: id.name,
+        description: id.category,
+        level: 1,
+        xp: 0,
+        color: ['orange', 'violet', 'cyan'][index % 3],
+        attributes: id.attributes,
+      })));
+      
+      setQuests(data.tasks.map((task: any) => ({
+        id: task.id,
+        title: task.description,
+        description: '',
+        linkedIdentity: '',
+        xpReward: task.xp,
+        status: 'pending' as const,
+        createdAt: new Date(),
+      })));
+      
+      // Fermer l'onboarding dans tous les cas
+      setShowOnboarding(false);
+      
       if (idRes.ok && qRes.ok) {
-        // Transform data to app format
-        setIdentities(data.identities.map((id: any, index: number) => ({
-          id: id.id,
-          name: id.name,
-          description: id.category,
-          level: 1,
-          xp: 0,
-          color: ['orange', 'violet', 'cyan'][index % 3],
-          attributes: id.attributes,
-        })));
-        
-        setQuests(data.tasks.map((task: any) => ({
-          id: task.id,
-          title: task.description,
-          description: '',
-          linkedIdentity: '',
-          xpReward: task.xp,
-          status: 'pending' as const,
-          createdAt: new Date(),
-        })));
-        
-        setShowOnboarding(false);
         toast({
           title: 'Initialisation terminée !',
           description: 'Tes identités sont prêtes.',
         });
+      } else {
+        // Afficher un avertissement mais continuer quand même
+        toast({
+          title: 'Mode hors-ligne',
+          description: 'Tes identités sont créées localement.',
+        });
       }
     } catch (error) {
       console.error('Error saving onboarding data:', error);
+      
+      // Même en cas d'erreur, on affiche les données localement
+      setIdentities(data.identities.map((id: any, index: number) => ({
+        id: id.id,
+        name: id.name,
+        description: id.category,
+        level: 1,
+        xp: 0,
+        color: ['orange', 'violet', 'cyan'][index % 3],
+        attributes: id.attributes,
+      })));
+      
+      setQuests(data.tasks.map((task: any) => ({
+        id: task.id,
+        title: task.description,
+        description: '',
+        linkedIdentity: '',
+        xpReward: task.xp,
+        status: 'pending' as const,
+        createdAt: new Date(),
+      })));
+      
+      setShowOnboarding(false);
       toast({
-        title: 'Erreur',
-        description: 'Impossible de sauvegarder tes données.',
+        title: 'Mode hors-ligne',
+        description: 'Tes identités sont créées localement.',
       });
     }
   };
