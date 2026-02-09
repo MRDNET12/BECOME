@@ -181,6 +181,25 @@ export default function BecomePage() {
   const [timeTravelValue, setTimeTravelValue] = useState(50); // 50 = aujourd'hui
   const [identities, setIdentities] = useState<Identity[]>([]);
 
+  // Sauvegarder toutes les données dans localStorage à chaque changement
+  useEffect(() => {
+    if (identities.length > 0) {
+      localStorage.setItem('become-identities', JSON.stringify(identities));
+    }
+  }, [identities]);
+
+  useEffect(() => {
+    localStorage.setItem('become-quests', JSON.stringify(quests));
+  }, [quests]);
+
+  useEffect(() => {
+    localStorage.setItem('become-logs', JSON.stringify(logs));
+  }, [logs]);
+
+  useEffect(() => {
+    localStorage.setItem('become-lessons', JSON.stringify(lessons));
+  }, [lessons]);
+
   // Calcul de la progression de la journée
   const completedToday = quests.filter(q => q.status === "completed").length;
   const totalQuests = quests.length;
@@ -205,37 +224,85 @@ export default function BecomePage() {
     });
   };
 
-  // Check if onboarding was already completed in localStorage
+  // Check if onboarding was already completed in localStorage and load ALL data
   useEffect(() => {
+    // Load all data from localStorage
+    const savedIdentities = localStorage.getItem('become-identities');
+    const savedQuests = localStorage.getItem('become-quests');
+    const savedLogs = localStorage.getItem('become-logs');
+    const savedLessons = localStorage.getItem('become-lessons');
     const onboardingCompleted = localStorage.getItem('become-onboarding-completed');
-    if (onboardingCompleted === 'true') {
-      // Load data from localStorage
-      const savedIdentities = localStorage.getItem('become-identities');
-      const savedQuests = localStorage.getItem('become-quests');
-      
-      if (savedIdentities) {
-        try {
-          const parsedIdentities = JSON.parse(savedIdentities);
-          setIdentities(parsedIdentities);
-        } catch (e) {
-          console.error('Error parsing identities from localStorage:', e);
-        }
+    
+    // Parse dates for quests
+    const parseQuests = (data: string) => {
+      const parsed = JSON.parse(data);
+      return parsed.map((q: any) => ({
+        ...q,
+        createdAt: new Date(q.createdAt),
+        completedAt: q.completedAt ? new Date(q.completedAt) : undefined,
+      }));
+    };
+
+    // Parse dates for logs
+    const parseLogs = (data: string) => {
+      const parsed = JSON.parse(data);
+      return parsed.map((l: any) => ({
+        ...l,
+        createdAt: new Date(l.createdAt),
+      }));
+    };
+
+    // Parse dates for lessons
+    const parseLessons = (data: string) => {
+      const parsed = JSON.parse(data);
+      return parsed.map((l: any) => ({
+        ...l,
+        date: new Date(l.date),
+      }));
+    };
+    
+    if (savedIdentities) {
+      try {
+        setIdentities(JSON.parse(savedIdentities));
+      } catch (e) {
+        console.error('Error parsing identities from localStorage:', e);
       }
-      
-      if (savedQuests) {
-        try {
-          const parsedQuests = JSON.parse(savedQuests);
-          setQuests(parsedQuests);
-        } catch (e) {
-          console.error('Error parsing quests from localStorage:', e);
-        }
+    }
+    
+    if (savedQuests) {
+      try {
+        setQuests(parseQuests(savedQuests));
+      } catch (e) {
+        console.error('Error parsing quests from localStorage:', e);
       }
-      
-      // Don't show onboarding if already completed and data exists
-      if (savedIdentities && savedQuests) {
-        setIsLoading(false);
-        return;
+    }
+    
+    if (savedLogs) {
+      try {
+        setLogs(parseLogs(savedLogs));
+      } catch (e) {
+        console.error('Error parsing logs from localStorage:', e);
       }
+    } else {
+      // If no logs in storage, clear mock data
+      setLogs([]);
+    }
+    
+    if (savedLessons) {
+      try {
+        setLessons(parseLessons(savedLessons));
+      } catch (e) {
+        console.error('Error parsing lessons from localStorage:', e);
+      }
+    } else {
+      // If no lessons in storage, clear mock data
+      setLessons([]);
+    }
+    
+    // Don't show onboarding if already completed
+    if (onboardingCompleted === 'true' && savedIdentities && savedQuests) {
+      setIsLoading(false);
+      return;
     }
     
     // Otherwise, fetch from API
@@ -407,13 +474,32 @@ export default function BecomePage() {
   const handleCompleteQuest = (questId: string) => {
     triggerHapticFeedback("medium");
 
+    const quest = quests.find((q) => q.id === questId);
+    if (!quest) return;
+
+    // Mettre à jour le statut de la quête
     setQuests(
       quests.map((q) =>
         q.id === questId ? { ...q, status: "completed", completedAt: new Date() } : q
       )
     );
 
-    const quest = quests.find((q) => q.id === questId);
+    // Ajouter l'XP à l'identité liée
+    setIdentities(
+      identities.map((identity) => {
+        if (identity.id === quest.linkedIdentity) {
+          const newXP = identity.xp + quest.xpReward;
+          const newLevel = Math.floor(newXP / 100) + 1;
+          return {
+            ...identity,
+            xp: newXP,
+            level: newLevel,
+          };
+        }
+        return identity;
+      })
+    );
+
     const identity = identities.find((i) => i.id === quest?.linkedIdentity) || identities[0];
 
     toast({
@@ -469,6 +555,7 @@ export default function BecomePage() {
     };
 
     setQuests([...quests, newQuest]);
+    setShowBuildModal(false); // Fermer le modal
     toast({
       title: "Nouvelle Preuve Créée",
       description: "Prêt à construire ton identité ?",
@@ -484,6 +571,8 @@ export default function BecomePage() {
     };
 
     setLogs([newLog, ...logs]);
+    setShowBuildModal(false); // Fermer le modal
+    setActiveTab("forge"); // Rediriger vers l'onglet La Forge (où sont les logs)
     toast({
       title: "Log Enregistré",
       description: "Ta pensée a été sauvegardée",
