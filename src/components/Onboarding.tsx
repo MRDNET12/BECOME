@@ -196,30 +196,30 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center text-center space-y-6 p-4"
+      className="flex flex-col items-center text-center space-y-8 p-6"
     >
       <motion.div
         animate={{ rotate: [0, 10, -10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="relative mb-2"
+        className="relative mb-4"
       >
         <div className="absolute inset-0 bg-neon-gold/20 blur-2xl rounded-full" />
-        <Crown className="w-16 h-16 text-neon-gold relative z-10 drop-shadow-2xl" />
+        <Crown className="w-24 h-24 text-neon-gold relative z-10 drop-shadow-2xl" />
       </motion.div>
       
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-neon-gold to-orange-500 bg-clip-text text-transparent">
+      <div className="space-y-3">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-neon-gold to-orange-500 bg-clip-text text-transparent">
           Bienvenue sur BECOME
         </h1>
-        <p className="text-lg text-gray-600 font-light">"{quote}"</p>
+        <p className="text-2xl text-gray-600 font-light">"{quote}"</p>
       </div>
 
       <Button
         onClick={() => setStep('create-identity')}
-        className="bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold px-8 py-4 text-lg border-2 border-neon-gold shadow-lg shadow-neon-gold/50"
+        className="bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold px-12 py-6 text-xl border-2 border-neon-gold shadow-lg shadow-neon-gold/50"
       >
         Commencer mon voyage
-        <ArrowRight className="ml-2 w-5 h-5" />
+        <ArrowRight className="ml-2 w-6 h-6" />
       </Button>
     </motion.div>
   );
@@ -229,35 +229,35 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-4 p-3"
+      className="space-y-6 p-4"
     >
-      <div className="text-center mb-3">
-        <h2 className="text-xl font-bold text-neon-violet">Qui veux-tu devenir ?</h2>
+      <div className="text-center mb-6">
+        <h2 className="text-3xl font-bold text-neon-violet">Qui veux-tu devenir ?</h2>
       </div>
 
       {identities.length === 0 ? (
         /* Identity Form - only show if no identity created */
-        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border-2 border-neon-violet/50">
-          <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Nom de l'identité</label>
+        <Card className="p-6 space-y-6 bg-gradient-to-br from-card to-card/50 border-2 border-neon-violet/50">
+          <div className="space-y-3">
+            <label className="text-base font-bold text-gray-700 uppercase tracking-wide">Nom de l'identité</label>
             <Input
               placeholder="Ex: Professionnel Productif..."
               value={currentIdentity.name}
               onChange={(e) => setCurrentIdentity({ ...currentIdentity, name: e.target.value })}
-              className="h-10 text-base border-2 border-neon-violet/30 focus:border-neon-violet"
+              className="h-14 text-lg border-2 border-neon-violet/30 focus:border-neon-violet"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Catégorie</label>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="space-y-3">
+            <label className="text-base font-bold text-gray-700 uppercase tracking-wide">Catégorie</label>
+            <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <Badge
                   key={cat}
                   variant={currentIdentity.category === cat ? 'default' : 'outline'}
-                  className={`cursor-pointer transition-all text-xs px-2 py-1 ${
+                  className={`cursor-pointer transition-all text-base px-4 py-2 ${
                     currentIdentity.category === cat 
-                      ? 'bg-neon-violet text-white border-neon-violet shadow-md shadow-neon-violet/50' 
+                      ? 'bg-neon-violet text-white border-neon-violet shadow-lg shadow-neon-violet/50' 
                       : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
                   }`}
                   onClick={() => setCurrentIdentity({ ...currentIdentity, category: cat })}
@@ -270,50 +270,50 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
 
           <Button
             onClick={addIdentity}
-            className="w-full h-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-sm shadow-md shadow-purple-500/50"
+            className="w-full h-14 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-lg shadow-lg shadow-purple-500/50"
           >
-            <Plus className="mr-1 w-4 h-4" />
+            <Plus className="mr-2 w-5 h-5" />
             Créer mon identité
           </Button>
         </Card>
       ) : (
         /* Show the created identity */
-        <Card className="p-4 bg-gradient-to-br from-card to-card/30 border border-neon-gold/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-gold/20 to-orange-500/20 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-neon-gold" />
+        <Card className="p-5 bg-gradient-to-br from-card to-card/30 border-2 border-neon-gold/50">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-neon-gold/20 to-orange-500/20 flex items-center justify-center">
+              <Shield className="w-6 h-6 text-neon-gold" />
             </div>
             <div className="flex-1">
-              <p className="font-bold text-base">{identities[0].name}</p>
-              <Badge variant="secondary" className="text-xs">{identities[0].category}</Badge>
+              <p className="font-bold text-lg">{identities[0].name}</p>
+              <Badge variant="secondary" className="text-sm">{identities[0].category}</Badge>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIdentities([])}
-              className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
+              className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-5 h-5" />
             </Button>
           </div>
         </Card>
       )}
 
-      <div className="flex gap-3 mt-4">
+      <div className="flex gap-4 mt-8">
         <Button
           variant="outline"
           onClick={() => setStep('welcome')}
-          className="flex-1 h-10 border-2 text-sm"
+          className="flex-1 h-14 border-2 text-lg"
         >
           Retour
         </Button>
         {identities.length > 0 && (
           <Button
             onClick={() => setStep('select-attributes')}
-            className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
+            className="flex-1 h-14 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-lg border-2 border-neon-gold shadow-lg shadow-neon-gold/50"
           >
             Continuer
-            <ArrowRight className="ml-1 w-4 h-4" />
+            <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         )}
       </div>
@@ -329,37 +329,37 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="space-y-3 p-3"
+        className="space-y-6 p-4"
       >
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-bold text-neon-violet mb-1">Définis tes Attributs</h2>
-          <p className="text-xs text-gray-500">Choisis ceux qui définissent ton identité</p>
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-neon-violet mb-2">Définis tes Attributs</h2>
+          <p className="text-sm text-gray-500">Choisis ceux qui définissent ton identité</p>
         </div>
 
-        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border border-neon-violet/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-violet to-pink-500 flex items-center justify-center shadow-md shadow-neon-violet/50">
-              <Target className="w-5 h-5 text-white" />
+        <Card className="p-6 space-y-4 bg-gradient-to-br from-card to-card/50 border-2 border-neon-violet/50">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-neon-violet to-pink-500 flex items-center justify-center shadow-lg shadow-neon-violet/50">
+              <Target className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-neon-violet">{identity.name}</h3>
-              <Badge variant="secondary" className="text-xs">{identity.category}</Badge>
+              <h3 className="font-bold text-xl text-neon-violet">{identity.name}</h3>
+              <Badge variant="secondary" className="text-sm">{identity.category}</Badge>
             </div>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                Attributs suggérés
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                Attributs suggérés <span className="text-neon-violet">({identity.attributes.length}/5)</span>
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {suggestedAttributes.map((attr) => (
                   <Badge
                     key={attr}
                     variant={identity.attributes.includes(attr) ? 'default' : 'outline'}
-                    className={`cursor-pointer transition-all text-xs px-2 py-0.5 ${
+                    className={`cursor-pointer transition-all text-base px-4 py-2 ${
                       identity.attributes.includes(attr)
-                        ? 'bg-neon-violet text-white border-neon-violet shadow-sm shadow-neon-violet/50'
+                        ? 'bg-neon-violet text-white border-neon-violet shadow-lg shadow-neon-violet/50'
                         : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
                     }`}
                     onClick={() => {
@@ -378,7 +378,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                       }
                     }}
                   >
-                    {identity.attributes.includes(attr) && <Check className="mr-0.5 w-3 h-3 inline" />}
+                    {identity.attributes.includes(attr) && <Check className="mr-1 w-4 h-4 inline" />}
                     {attr}
                   </Badge>
                 ))}
@@ -386,11 +386,11 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
             </div>
 
             {/* Custom Attribute Input */}
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Personnalisé</p>
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Attribut personnalisé</p>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Ajouter..."
+                  placeholder="Ajouter ton propre attribut..."
                   value={customAttribute}
                   onChange={(e) => setCustomAttribute(e.target.value)}
                   onKeyDown={(e) => {
@@ -405,7 +405,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                       }
                     }
                   }}
-                  className="flex-1 h-9 text-sm border-2 border-neon-violet/30 focus:border-neon-violet"
+                  className="flex-1 h-12 border-2 border-neon-violet/30 focus:border-neon-violet"
                   disabled={identity.attributes.length >= 5}
                 />
                 <Button
@@ -420,7 +420,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                     }
                   }}
                   disabled={!customAttribute.trim() || identity.attributes.length >= 5}
-                  className="bg-neon-violet hover:bg-neon-violet/80 text-white px-3 h-9"
+                  className="bg-neon-violet hover:bg-neon-violet/80 text-white px-4"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -429,11 +429,11 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
 
             {/* Selected Attributes */}
             {identity.attributes.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-neon-violet/20">
+              <div className="flex flex-wrap gap-2 pt-2 border-t-2 border-neon-violet/20">
                 {identity.attributes.map((attr) => (
                   <Badge
                     key={attr}
-                    className="bg-neon-violet text-white text-xs px-2 py-0.5 shadow-sm shadow-neon-violet/50 flex items-center gap-1"
+                    className="bg-neon-violet text-white text-base px-4 py-2 shadow-lg shadow-neon-violet/50 flex items-center gap-2"
                   >
                     {attr}
                     <button
@@ -445,7 +445,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                       }}
                       className="hover:text-neon-gold transition-colors"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-4 h-4" />
                     </button>
                   </Badge>
                 ))}
@@ -454,21 +454,21 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
           </div>
         </Card>
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-4 mt-8">
           <Button
             variant="outline"
             onClick={() => setStep('create-identity')}
-            className="flex-1 h-10 border-2 text-sm"
+            className="flex-1 h-14 border-2 text-lg"
           >
             Retour
           </Button>
           <Button
             onClick={() => setStep('create-tasks')}
             disabled={identity.attributes.length === 0}
-            className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
+            className="flex-1 h-14 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-lg border-2 border-neon-gold shadow-lg shadow-neon-gold/50"
           >
             Suivant
-            <ArrowRight className="ml-1 w-4 h-4" />
+            <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </motion.div>
@@ -483,29 +483,29 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="space-y-3 p-3"
+        className="space-y-6 p-4"
       >
-        <div className="text-center mb-2">
-          <h2 className="text-xl font-bold text-neon-violet mb-1">Tes Preuves Quotidiennes</h2>
-          <p className="text-xs text-gray-500">Quelles preuves vas-tu te donner aujourd'hui ?</p>
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-neon-violet mb-2">Tes Preuves Quotidiennes</h2>
+          <p className="text-sm text-gray-500">Quelles preuves vas-tu te donner aujourd'hui ?</p>
         </div>
 
-        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border border-neon-gold/30 hover:border-neon-gold/60 transition-all">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-gold to-orange-500 flex items-center justify-center shadow-md shadow-neon-gold/50">
-              <Sparkles className="w-5 h-5 text-white" />
+        <Card className="p-6 space-y-4 bg-gradient-to-br from-card to-card/50 border-2 border-neon-gold/30 hover:border-neon-gold/60 transition-all">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-neon-gold to-orange-500 flex items-center justify-center shadow-lg shadow-neon-gold/50">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
-              <p className="font-bold text-base text-neon-gold">{identity.name}</p>
-              <p className="text-xs text-gray-600">
+              <p className="font-bold text-xl text-neon-gold">{identity.name}</p>
+              <p className="text-sm text-gray-600">
                 Quelles sont tes preuves aujourd'hui ?
               </p>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Input
-              placeholder="Ex: Méditer 15 min, Courir 5km..."
+              placeholder="Ex: Méditer 15 minutes, Courir 5km..."
               value={currentTask.description}
               onChange={(e) => setCurrentTask({
                 ...currentTask,
@@ -513,7 +513,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                 description: e.target.value,
               })}
               onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              className="h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
+              className="h-12 border-2 border-neon-gold/30 focus:border-neon-gold text-base"
             />
             <div className="flex gap-2">
               <Input
@@ -524,13 +524,13 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
                   identityName: identity.name,
                   time: e.target.value,
                 })}
-                className="w-28 h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
+                className="w-36 h-12 border-2 border-neon-gold/30 focus:border-neon-gold"
               />
               <Button
                 onClick={addTask}
-                className="flex-1 h-9 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm shadow-md shadow-green-500/50"
+                className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold shadow-lg shadow-green-500/50"
               >
-                <Plus className="mr-1 w-4 h-4" />
+                <Plus className="mr-2 w-5 h-5" />
                 Ajouter
               </Button>
             </div>
@@ -538,23 +538,23 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
 
           {/* Tasks list */}
           {tasks.length > 0 && (
-            <div className="space-y-1.5 pt-2 border-t border-neon-gold/20">
+            <div className="space-y-2 pt-2 border-t-2 border-neon-gold/20">
               {tasks.map(task => (
-                <Card key={task.id} className="p-2 flex items-center justify-between bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
+                <Card key={task.id} className="p-4 flex items-center justify-between bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
                   <div>
-                    <p className="font-semibold text-sm">{task.description}</p>
-                    <div className="flex gap-1.5 mt-0.5">
-                      <Badge variant="outline" className="text-xs border-green-500 text-green-600 px-1.5 py-0">{task.time}</Badge>
-                      <Badge variant="outline" className="text-xs border-neon-gold text-orange-500 px-1.5 py-0">+{task.xp} XP</Badge>
+                    <p className="font-semibold">{task.description}</p>
+                    <div className="flex gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs border-green-500 text-green-600">{task.time}</Badge>
+                      <Badge variant="outline" className="text-xs border-neon-gold text-orange-500">+{task.xp} XP</Badge>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-7 w-7 p-0"
+                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-5 h-5" />
                   </Button>
                 </Card>
               ))}
@@ -562,20 +562,20 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
           )}
         </Card>
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-4 mt-8">
           <Button
             variant="outline"
             onClick={() => setStep('select-attributes')}
-            className="flex-1 h-10 border-2 text-sm"
+            className="flex-1 h-14 border-2 text-lg"
           >
             Retour
           </Button>
           <Button
             onClick={handleComplete}
-            className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
+            className="flex-1 h-14 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-lg border-2 border-neon-gold shadow-lg shadow-neon-gold/50"
           >
             Commencer
-            <ArrowRight className="ml-1 w-4 h-4" />
+            <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </motion.div>
@@ -584,7 +584,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background/95 to-background/90">
-      <div className="flex-1 flex items-center justify-center p-2">
+      <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
           <AnimatePresence mode="wait">
             {step === 'welcome' && renderWelcome()}
