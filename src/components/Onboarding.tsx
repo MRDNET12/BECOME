@@ -133,6 +133,11 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
       return;
     }
 
+    // Only allow one identity during onboarding
+    if (identities.length >= 1) {
+      return;
+    }
+
     const newIdentity: Identity = {
       id: currentIdentity.id || generateId(),
       name: currentIdentity.name,
@@ -140,7 +145,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
       attributes: currentIdentity.attributes || [],
     };
 
-    setIdentities([...identities, newIdentity]);
+    setIdentities([newIdentity]); // Only one identity
     setCurrentIdentity({
       id: '',
       name: '',
@@ -230,90 +235,68 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
         <h2 className="text-xl font-bold text-neon-violet">Qui veux-tu devenir ?</h2>
       </div>
 
-      {/* Identity Form */}
-      <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border-2 border-neon-violet/50">
-        <div className="space-y-1">
-          <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Nom de l'identité</label>
-          <Input
-            placeholder="Ex: Professionnel Productif..."
-            value={currentIdentity.name}
-            onChange={(e) => setCurrentIdentity({ ...currentIdentity, name: e.target.value })}
-            className="h-10 text-base border-2 border-neon-violet/30 focus:border-neon-violet"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Catégorie</label>
-          <div className="flex flex-wrap gap-1.5">
-            {CATEGORIES.map((cat) => (
-              <Badge
-                key={cat}
-                variant={currentIdentity.category === cat ? 'default' : 'outline'}
-                className={`cursor-pointer transition-all text-xs px-2 py-1 ${
-                  currentIdentity.category === cat 
-                    ? 'bg-neon-violet text-white border-neon-violet shadow-md shadow-neon-violet/50' 
-                    : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
-                }`}
-                onClick={() => setCurrentIdentity({ ...currentIdentity, category: cat })}
-              >
-                {cat}
-              </Badge>
-            ))}
+      {identities.length === 0 ? (
+        /* Identity Form - only show if no identity created */
+        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border-2 border-neon-violet/50">
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Nom de l'identité</label>
+            <Input
+              placeholder="Ex: Professionnel Productif..."
+              value={currentIdentity.name}
+              onChange={(e) => setCurrentIdentity({ ...currentIdentity, name: e.target.value })}
+              className="h-10 text-base border-2 border-neon-violet/30 focus:border-neon-violet"
+            />
           </div>
-        </div>
 
-        <Button
-          onClick={addIdentity}
-          className="w-full h-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-sm shadow-md shadow-purple-500/50"
-        >
-          <Plus className="mr-1 w-4 h-4" />
-          Ajouter cette identité
-        </Button>
-      </Card>
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Catégorie</label>
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <Badge
+                  key={cat}
+                  variant={currentIdentity.category === cat ? 'default' : 'outline'}
+                  className={`cursor-pointer transition-all text-xs px-2 py-1 ${
+                    currentIdentity.category === cat 
+                      ? 'bg-neon-violet text-white border-neon-violet shadow-md shadow-neon-violet/50' 
+                      : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
+                  }`}
+                  onClick={() => setCurrentIdentity({ ...currentIdentity, category: cat })}
+                >
+                  {cat}
+                </Badge>
+              ))}
+            </div>
+          </div>
 
-      {/* Created Identities */}
-      {identities.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-gray-700">
-              Tes identités <span className="text-neon-gold">({identities.length}/3)</span>
-            </h3>
+          <Button
+            onClick={addIdentity}
+            className="w-full h-10 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-sm shadow-md shadow-purple-500/50"
+          >
+            <Plus className="mr-1 w-4 h-4" />
+            Créer mon identité
+          </Button>
+        </Card>
+      ) : (
+        /* Show the created identity */
+        <Card className="p-4 bg-gradient-to-br from-card to-card/30 border border-neon-gold/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-gold/20 to-orange-500/20 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-neon-gold" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-base">{identities[0].name}</p>
+              <Badge variant="secondary" className="text-xs">{identities[0].category}</Badge>
+            </div>
             <Button
               variant="ghost"
               size="sm"
-              className="text-neon-violet hover:text-neon-violet/80 h-7 text-xs"
-              onClick={() => {
-                document.getElementById('identity-form')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => setIdentities([])}
+              className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 w-8 p-0"
             >
-              <Plus className="w-4 h-4 mr-1" />
-              {identities.length >= 3 ? 'Max' : 'Ajouter'}
+              <Minus className="w-4 h-4" />
             </Button>
           </div>
-          <div className="space-y-2">
-            {identities.map((identity) => (
-              <Card key={identity.id} className="p-3 flex items-center justify-between bg-gradient-to-br from-card to-card/30 border border-neon-gold/30 hover:border-neon-gold/60 transition-all">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-gold/20 to-orange-500/20 flex items-center justify-center">
-                    <Shield className="w-4 h-4 text-neon-gold" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-sm">{identity.name}</p>
-                    <Badge variant="secondary" className="text-xs">{identity.category}</Badge>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIdentities(identities.filter((i) => i.id !== identity.id))}
-                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-7 w-7 p-0"
-                >
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </Card>
-            ))}
-          </div>
-        </div>
+        </Card>
       )}
 
       <div className="flex gap-3 mt-4">
@@ -329,7 +312,7 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
             onClick={() => setStep('select-attributes')}
             className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
           >
-            {identities.length >= 3 ? 'Terminer' : `Suivant (${identities.length}/3)`}
+            Continuer
             <ArrowRight className="ml-1 w-4 h-4" />
           </Button>
         )}
@@ -337,260 +320,267 @@ export function Onboarding({ onComplete }: { onComplete: (data: { identities: Id
     </motion.div>
   );
 
-  const renderSelectAttributes = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="space-y-3 p-3"
-    >
-      <div className="text-center mb-2">
-        <h2 className="text-xl font-bold text-neon-violet mb-1">Définis tes Attributs</h2>
-        <p className="text-xs text-gray-500">Choisis 1 à 5 attributs par identité</p>
-      </div>
+  const renderSelectAttributes = () => {
+    const identity = identities[0];
+    const suggestedAttributes = ATTRIBUTES_BY_CATEGORY[identity.category] || DEFAULT_ATTRIBUTES;
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="space-y-3 p-3"
+      >
+        <div className="text-center mb-2">
+          <h2 className="text-xl font-bold text-neon-violet mb-1">Définis tes Attributs</h2>
+          <p className="text-xs text-gray-500">Choisis ceux qui définissent ton identité</p>
+        </div>
 
-      <div className="space-y-3">
-        {identities.map((identity, index) => {
-          const suggestedAttributes = ATTRIBUTES_BY_CATEGORY[identity.category] || DEFAULT_ATTRIBUTES;
-          
-          return (
-            <Card key={identity.id} className="p-4 space-y-2 bg-gradient-to-br from-card to-card/50 border border-neon-violet/50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-violet to-pink-500 flex items-center justify-center shadow-md shadow-neon-violet/50">
-                  <Target className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-neon-violet">{identity.name}</h3>
-                  <Badge variant="secondary" className="text-xs">{identity.category}</Badge>
-                </div>
-              </div>
+        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border border-neon-violet/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-violet to-pink-500 flex items-center justify-center shadow-md shadow-neon-violet/50">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-neon-violet">{identity.name}</h3>
+              <Badge variant="secondary" className="text-xs">{identity.category}</Badge>
+            </div>
+          </div>
 
-              <div className="space-y-2 pt-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                    Suggérés <span className="text-neon-violet">({identity.attributes.length}/5)</span>
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {suggestedAttributes.map((attr) => (
-                      <Badge
-                        key={attr}
-                        variant={identity.attributes.includes(attr) ? 'default' : 'outline'}
-                        className={`cursor-pointer transition-all text-xs px-2 py-0.5 ${
-                          identity.attributes.includes(attr)
-                            ? 'bg-neon-violet text-white border-neon-violet shadow-sm shadow-neon-violet/50'
-                            : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
-                        }`}
-                        onClick={() => {
-                          if (identity.attributes.includes(attr)) return;
-                          if (identity.attributes.length >= 5) return;
-                          
-                          const newIdentities = [...identities];
-                          newIdentities[index] = {
-                            ...identity,
-                            attributes: [...identity.attributes, attr],
-                          };
-                          setIdentities(newIdentities);
-                        }}
-                      >
-                        {identity.attributes.includes(attr) && <Check className="mr-0.5 w-3 h-3 inline" />}
-                        {attr}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom Attribute Input */}
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Personnalisé</p>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Ajouter..."
-                      value={index === identities.length - 1 ? customAttribute : ''}
-                      onChange={(e) => index === identities.length - 1 && setCustomAttribute(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          if (index === identities.length - 1) {
-                            addCustomAttribute();
-                          }
-                        }
-                      }}
-                      className="flex-1 h-9 text-sm border-2 border-neon-violet/30 focus:border-neon-violet"
-                      disabled={index !== identities.length - 1 || identity.attributes.length >= 5}
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (index === identities.length - 1) {
-                          addCustomAttribute();
-                        }
-                      }}
-                      disabled={index !== identities.length - 1 || !customAttribute.trim() || identity.attributes.length >= 5}
-                      className="bg-neon-violet hover:bg-neon-violet/80 text-white px-3 h-9"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Selected Attributes */}
-                {identity.attributes.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 pt-1 border-t border-neon-violet/20">
-                    {identity.attributes.map((attr) => (
-                      <Badge
-                        key={attr}
-                        className="bg-neon-violet text-white text-xs px-2 py-0.5 shadow-sm shadow-neon-violet/50 flex items-center gap-1"
-                      >
-                        {attr}
-                        <button
-                          onClick={() => {
-                            const newIdentities = [...identities];
-                            newIdentities[index] = {
-                              ...identity,
-                              attributes: identity.attributes.filter((a) => a !== attr),
-                            };
-                            setIdentities(newIdentities);
-                          }}
-                          className="hover:text-neon-gold transition-colors"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="flex gap-3 mt-4">
-        <Button
-          variant="outline"
-          onClick={() => setStep('create-identity')}
-          className="flex-1 h-10 border-2 text-sm"
-        >
-          Retour
-        </Button>
-        <Button
-          onClick={() => setStep('create-tasks')}
-          disabled={identities.some(i => i.attributes.length === 0)}
-          className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
-        >
-          Suivant
-          <ArrowRight className="ml-1 w-4 h-4" />
-        </Button>
-      </div>
-    </motion.div>
-  );
-
-  const renderCreateTasks = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="space-y-3 p-3"
-    >
-      <div className="text-center mb-2">
-        <h2 className="text-xl font-bold text-neon-violet mb-1">Tes Preuves Quotidiennes</h2>
-        <p className="text-xs text-gray-500">Quelles preuves vas-tu te donner aujourd'hui ?</p>
-      </div>
-
-      <div className="space-y-3">
-        {identities.map((identity) => (
-          <Card key={identity.id} className="p-4 space-y-2 bg-gradient-to-br from-card to-card/50 border border-neon-gold/30 hover:border-neon-gold/60 transition-all">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-gold to-orange-500 flex items-center justify-center shadow-md shadow-neon-gold/50">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-base text-neon-gold">{identity.name}</p>
-                <p className="text-xs text-gray-600">
-                  Quelles sont tes preuves aujourd'hui ?
-                </p>
+          <div className="space-y-2 pt-2">
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                Attributs suggérés
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedAttributes.map((attr) => (
+                  <Badge
+                    key={attr}
+                    variant={identity.attributes.includes(attr) ? 'default' : 'outline'}
+                    className={`cursor-pointer transition-all text-xs px-2 py-0.5 ${
+                      identity.attributes.includes(attr)
+                        ? 'bg-neon-violet text-white border-neon-violet shadow-sm shadow-neon-violet/50'
+                        : 'border-neon-violet/30 hover:border-neon-violet hover:bg-neon-violet/10'
+                    }`}
+                    onClick={() => {
+                      if (identity.attributes.includes(attr)) {
+                        // Remove attribute
+                        setIdentities([{
+                          ...identity,
+                          attributes: identity.attributes.filter((a) => a !== attr),
+                        }]);
+                      } else if (identity.attributes.length < 5) {
+                        // Add attribute
+                        setIdentities([{
+                          ...identity,
+                          attributes: [...identity.attributes, attr],
+                        }]);
+                      }
+                    }}
+                  >
+                    {identity.attributes.includes(attr) && <Check className="mr-0.5 w-3 h-3 inline" />}
+                    {attr}
+                  </Badge>
+                ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Input
-                placeholder="Ex: Méditer 15 min, Courir 5km..."
-                value={currentTask.identityName === identity.name ? currentTask.description : ''}
-                onChange={(e) => setCurrentTask({
-                  ...currentTask,
-                  identityName: identity.name,
-                  description: e.target.value,
-                })}
-                onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                className="h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
-              />
+            {/* Custom Attribute Input */}
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Personnalisé</p>
               <div className="flex gap-2">
                 <Input
-                  type="time"
-                  value={currentTask.identityName === identity.name ? currentTask.time : '07:00'}
-                  onChange={(e) => setCurrentTask({
-                    ...currentTask,
-                    identityName: identity.name,
-                    time: e.target.value,
-                  })}
-                  className="w-28 h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
+                  placeholder="Ajouter..."
+                  value={customAttribute}
+                  onChange={(e) => setCustomAttribute(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (customAttribute.trim() && identity.attributes.length < 5) {
+                        setIdentities([{
+                          ...identity,
+                          attributes: [...identity.attributes, customAttribute.trim()],
+                        }]);
+                        setCustomAttribute('');
+                      }
+                    }
+                  }}
+                  className="flex-1 h-9 text-sm border-2 border-neon-violet/30 focus:border-neon-violet"
+                  disabled={identity.attributes.length >= 5}
                 />
                 <Button
-                  onClick={addTask}
-                  className="flex-1 h-9 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm shadow-md shadow-green-500/50"
+                  size="sm"
+                  onClick={() => {
+                    if (customAttribute.trim() && identity.attributes.length < 5) {
+                      setIdentities([{
+                        ...identity,
+                        attributes: [...identity.attributes, customAttribute.trim()],
+                      }]);
+                      setCustomAttribute('');
+                    }
+                  }}
+                  disabled={!customAttribute.trim() || identity.attributes.length >= 5}
+                  className="bg-neon-violet hover:bg-neon-violet/80 text-white px-3 h-9"
                 >
-                  <Plus className="mr-1 w-4 h-4" />
-                  Ajouter
+                  <Plus className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Tasks for this identity */}
-            {tasks.filter(t => t.identityName === identity.name).length > 0 && (
-              <div className="space-y-1.5 pt-2 border-t border-neon-gold/20">
-                {tasks.filter(t => t.identityName === identity.name).map(task => (
-                  <Card key={task.id} className="p-2 flex items-center justify-between bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
-                    <div>
-                      <p className="font-semibold text-sm">{task.description}</p>
-                      <div className="flex gap-1.5 mt-0.5">
-                        <Badge variant="outline" className="text-xs border-green-500 text-green-600 px-1.5 py-0">{task.time}</Badge>
-                        <Badge variant="outline" className="text-xs border-neon-gold text-orange-500 px-1.5 py-0">+{task.xp} XP</Badge>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-7 w-7 p-0"
+            {/* Selected Attributes */}
+            {identity.attributes.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1 border-t border-neon-violet/20">
+                {identity.attributes.map((attr) => (
+                  <Badge
+                    key={attr}
+                    className="bg-neon-violet text-white text-xs px-2 py-0.5 shadow-sm shadow-neon-violet/50 flex items-center gap-1"
+                  >
+                    {attr}
+                    <button
+                      onClick={() => {
+                        setIdentities([{
+                          ...identity,
+                          attributes: identity.attributes.filter((a) => a !== attr),
+                        }]);
+                      }}
+                      className="hover:text-neon-gold transition-colors"
                     >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                  </Card>
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
                 ))}
               </div>
             )}
-          </Card>
-        ))}
-      </div>
+          </div>
+        </Card>
 
-      <div className="flex gap-3 mt-4">
-        <Button
-          variant="outline"
-          onClick={() => setStep('select-attributes')}
-          className="flex-1 h-10 border-2 text-sm"
-        >
-          Retour
-        </Button>
-        <Button
-          onClick={handleComplete}
-          className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
-        >
-          Commencer
-          <ArrowRight className="ml-1 w-4 h-4" />
-        </Button>
-      </div>
-    </motion.div>
-  );
+        <div className="flex gap-3 mt-4">
+          <Button
+            variant="outline"
+            onClick={() => setStep('create-identity')}
+            className="flex-1 h-10 border-2 text-sm"
+          >
+            Retour
+          </Button>
+          <Button
+            onClick={() => setStep('create-tasks')}
+            disabled={identity.attributes.length === 0}
+            className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
+          >
+            Suivant
+            <ArrowRight className="ml-1 w-4 h-4" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderCreateTasks = () => {
+    const identity = identities[0];
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="space-y-3 p-3"
+      >
+        <div className="text-center mb-2">
+          <h2 className="text-xl font-bold text-neon-violet mb-1">Tes Preuves Quotidiennes</h2>
+          <p className="text-xs text-gray-500">Quelles preuves vas-tu te donner aujourd'hui ?</p>
+        </div>
+
+        <Card className="p-4 space-y-3 bg-gradient-to-br from-card to-card/50 border border-neon-gold/30 hover:border-neon-gold/60 transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-gold to-orange-500 flex items-center justify-center shadow-md shadow-neon-gold/50">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-base text-neon-gold">{identity.name}</p>
+              <p className="text-xs text-gray-600">
+                Quelles sont tes preuves aujourd'hui ?
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Input
+              placeholder="Ex: Méditer 15 min, Courir 5km..."
+              value={currentTask.description}
+              onChange={(e) => setCurrentTask({
+                ...currentTask,
+                identityName: identity.name,
+                description: e.target.value,
+              })}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
+              className="h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
+            />
+            <div className="flex gap-2">
+              <Input
+                type="time"
+                value={currentTask.time}
+                onChange={(e) => setCurrentTask({
+                  ...currentTask,
+                  identityName: identity.name,
+                  time: e.target.value,
+                })}
+                className="w-28 h-9 border-2 border-neon-gold/30 focus:border-neon-gold text-sm"
+              />
+              <Button
+                onClick={addTask}
+                className="flex-1 h-9 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-sm shadow-md shadow-green-500/50"
+              >
+                <Plus className="mr-1 w-4 h-4" />
+                Ajouter
+              </Button>
+            </div>
+          </div>
+
+          {/* Tasks list */}
+          {tasks.length > 0 && (
+            <div className="space-y-1.5 pt-2 border-t border-neon-gold/20">
+              {tasks.map(task => (
+                <Card key={task.id} className="p-2 flex items-center justify-between bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/30">
+                  <div>
+                    <p className="font-semibold text-sm">{task.description}</p>
+                    <div className="flex gap-1.5 mt-0.5">
+                      <Badge variant="outline" className="text-xs border-green-500 text-green-600 px-1.5 py-0">{task.time}</Badge>
+                      <Badge variant="outline" className="text-xs border-neon-gold text-orange-500 px-1.5 py-0">+{task.xp} XP</Badge>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTasks(tasks.filter(t => t.id !== task.id))}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-7 w-7 p-0"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <div className="flex gap-3 mt-4">
+          <Button
+            variant="outline"
+            onClick={() => setStep('select-attributes')}
+            className="flex-1 h-10 border-2 text-sm"
+          >
+            Retour
+          </Button>
+          <Button
+            onClick={handleComplete}
+            className="flex-1 h-10 bg-gradient-to-r from-neon-gold to-orange-500 hover:from-neon-gold/80 hover:to-orange-500/80 text-white font-bold text-sm border-2 border-neon-gold shadow-md shadow-neon-gold/50"
+          >
+            Commencer
+            <ArrowRight className="ml-1 w-4 h-4" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background/95 to-background/90">
