@@ -205,8 +205,40 @@ export default function BecomePage() {
     });
   };
 
-  // Fetch data from API on mount
+  // Check if onboarding was already completed in localStorage
   useEffect(() => {
+    const onboardingCompleted = localStorage.getItem('become-onboarding-completed');
+    if (onboardingCompleted === 'true') {
+      // Load data from localStorage
+      const savedIdentities = localStorage.getItem('become-identities');
+      const savedQuests = localStorage.getItem('become-quests');
+      
+      if (savedIdentities) {
+        try {
+          const parsedIdentities = JSON.parse(savedIdentities);
+          setIdentities(parsedIdentities);
+        } catch (e) {
+          console.error('Error parsing identities from localStorage:', e);
+        }
+      }
+      
+      if (savedQuests) {
+        try {
+          const parsedQuests = JSON.parse(savedQuests);
+          setQuests(parsedQuests);
+        } catch (e) {
+          console.error('Error parsing quests from localStorage:', e);
+        }
+      }
+      
+      // Don't show onboarding if already completed and data exists
+      if (savedIdentities && savedQuests) {
+        setIsLoading(false);
+        return;
+      }
+    }
+    
+    // Otherwise, fetch from API
     const fetchData = async () => {
       try {
         // Fetch identities
@@ -219,7 +251,7 @@ export default function BecomePage() {
         
         if (idData.identities && idData.identities.length > 0) {
           // Map database identities to app format
-          setIdentities(idData.identities.map((id: any) => ({
+          const mappedIdentities = idData.identities.map((id: any) => ({
             id: id.id,
             name: id.name,
             description: id.category,
@@ -227,11 +259,14 @@ export default function BecomePage() {
             xp: id.totalXP,
             color: ['orange', 'violet', 'cyan', 'pink'][Math.floor(Math.random() * 4)],
             attributes: id.attributeProgress?.map((ap: any) => ap.attribute?.name) || [],
-          })));
+          }));
+          setIdentities(mappedIdentities);
+          // Save to localStorage
+          localStorage.setItem('become-identities', JSON.stringify(mappedIdentities));
         }
         
         if (qData.quests && qData.quests.length > 0) {
-          setQuests(qData.quests.map((q: any) => ({
+          const mappedQuests = qData.quests.map((q: any) => ({
             id: q.id,
             title: q.title,
             description: q.description || '',
@@ -239,15 +274,25 @@ export default function BecomePage() {
             xpReward: q.xpReward,
             status: q.completed ? 'completed' as const : 'pending' as const,
             createdAt: q.date,
-          })));
+          }));
+          setQuests(mappedQuests);
+          // Save to localStorage
+          localStorage.setItem('become-quests', JSON.stringify(mappedQuests));
         }
         
         // Show onboarding if no identities exist
         if (!idData.identities || idData.identities.length === 0) {
           setShowOnboarding(true);
+        } else {
+          // Mark onboarding as completed
+          localStorage.setItem('become-onboarding-completed', 'true');
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        // If API fails but we have localStorage data, use it
+        if (!onboardingCompleted) {
+          setShowOnboarding(true);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -262,22 +307,8 @@ export default function BecomePage() {
 
   const handleOnboardingComplete = async (data: { identities: any[], tasks: any[] }) => {
     try {
-      // Save identities to database
-      const idRes = await fetch('/api/onboarding/identities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identities: data.identities }),
-      });
-      
-      // Save quests to database
-      const qRes = await fetch('/api/onboarding/quests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tasks: data.tasks }),
-      });
-      
-      // Transform data to app format (même si l'API échoue, on affiche les données localement)
-      setIdentities(data.identities.map((id: any, index: number) => ({
+      // Transform data to app format
+      const newIdentities = data.identities.map((id: any, index: number) => ({
         id: id.id,
         name: id.name,
         description: id.category,
@@ -285,9 +316,9 @@ export default function BecomePage() {
         xp: 0,
         color: ['orange', 'violet', 'cyan'][index % 3],
         attributes: id.attributes,
-      })));
+      }));
       
-      setQuests(data.tasks.map((task: any) => ({
+      const newQuests = data.tasks.map((task: any) => ({
         id: task.id,
         title: task.description,
         description: '',
@@ -295,28 +326,50 @@ export default function BecomePage() {
         xpReward: task.xp,
         status: 'pending' as const,
         createdAt: new Date(),
-      })));
+      }));
       
-      // Fermer l'onboarding dans tous les cas
+      // Save to localStorage first
+      localStorage.setItem('become-onboarding-completed', 'true');
+      localStorage.setItem('become-identities', JSON.stringify(newIdentities));
+      localStorage.setItem('become-quests', JSON.stringify(newQuests));
+      
+      // Update state
+      setIdentities(newIdentities);
+      setQuests(newQuests);
       setShowOnboarding(false);
       
-      if (idRes.ok && qRes.ok) {
-        toast({
-          title: 'Initialisation terminée !',
-          description: 'Tes identités sont prêtes.',
+      // Try to save to database (optional - don't block if it fails)
+      try {
+        const idRes = await fetch('/api/onboarding/identities', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identities: data.identities }),
         });
-      } else {
-        // Afficher un avertissement mais continuer quand même
+        
+        const qRes = await fetch('/api/onboarding/quests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tasks: data.tasks }),
+        });
+        
+        if (idRes.ok && qRes.ok) {
+          toast({
+            title: 'Initialisation terminée !',
+            description: 'Tes identités sont prêtes.',
+          });
+        }
+      } catch (apiError) {
+        console.error('API save failed, but data is saved locally:', apiError);
         toast({
           title: 'Mode hors-ligne',
           description: 'Tes identités sont créées localement.',
         });
       }
     } catch (error) {
-      console.error('Error saving onboarding data:', error);
+      console.error('Error in onboarding complete:', error);
       
-      // Même en cas d'erreur, on affiche les données localement
-      setIdentities(data.identities.map((id: any, index: number) => ({
+      // Fallback: save locally even if something goes wrong
+      const newIdentities = data.identities.map((id: any, index: number) => ({
         id: id.id,
         name: id.name,
         description: id.category,
@@ -324,9 +377,9 @@ export default function BecomePage() {
         xp: 0,
         color: ['orange', 'violet', 'cyan'][index % 3],
         attributes: id.attributes,
-      })));
+      }));
       
-      setQuests(data.tasks.map((task: any) => ({
+      const newQuests = data.tasks.map((task: any) => ({
         id: task.id,
         title: task.description,
         description: '',
@@ -334,9 +387,16 @@ export default function BecomePage() {
         xpReward: task.xp,
         status: 'pending' as const,
         createdAt: new Date(),
-      })));
+      }));
       
+      localStorage.setItem('become-onboarding-completed', 'true');
+      localStorage.setItem('become-identities', JSON.stringify(newIdentities));
+      localStorage.setItem('become-quests', JSON.stringify(newQuests));
+      
+      setIdentities(newIdentities);
+      setQuests(newQuests);
       setShowOnboarding(false);
+      
       toast({
         title: 'Mode hors-ligne',
         description: 'Tes identités sont créées localement.',
