@@ -580,29 +580,37 @@ export default function BecomePage() {
   };
 
   const handleIdentityCreated = async (newIdentity: any) => {
-    // Refresh identities from database
+    // Add new identity to local state
+    const identityToAdd: Identity = {
+      id: newIdentity.id || Date.now().toString(),
+      name: newIdentity.name,
+      description: newIdentity.category || newIdentity.description || '',
+      level: 1,
+      xp: 0,
+      color: ['orange', 'violet', 'cyan', 'pink'][Math.floor(Math.random() * 4)],
+      attributes: newIdentity.attributes || [],
+    };
+    
+    const updatedIdentities = [...identities, identityToAdd];
+    setIdentities(updatedIdentities);
+    
+    // Save to localStorage
+    localStorage.setItem('become-identities', JSON.stringify(updatedIdentities));
+    
+    toast({
+      title: 'Identité créée !',
+      description: `${newIdentity.name} a été ajoutée à ta collection.`,
+    });
+    
+    // Also try to save to API (optional)
     try {
-      const idRes = await fetch('/api/onboarding/identities');
-      const idData = await idRes.json();
-      
-      if (idData.identities) {
-        setIdentities(idData.identities.map((id: any) => ({
-          id: id.id,
-          name: id.name,
-          description: id.category,
-          level: id.currentLevel,
-          xp: id.totalXP,
-          color: ['orange', 'violet', 'cyan', 'pink'][Math.floor(Math.random() * 4)],
-          attributes: id.attributeProgress?.map((ap: any) => ap.attribute?.name) || [],
-        })));
-      }
-      
-      toast({
-        title: 'Identité créée !',
-        description: `${newIdentity.name} a été ajoutée à ta collection.`,
+      await fetch('/api/onboarding/identities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identities: [newIdentity] }),
       });
     } catch (error) {
-      console.error('Error refreshing identities:', error);
+      console.error('API save failed, but identity is saved locally:', error);
     }
   };
 
