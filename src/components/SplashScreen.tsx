@@ -30,10 +30,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       setShowPhrase(true);
     }, 500);
 
-    // Compléter le splash screen après 3 secondes
+    // Compléter le splash screen après 4 secondes (temps de lire la phrase)
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 3000);
+    }, 4000);
 
     return () => {
       clearTimeout(phraseTimer);
